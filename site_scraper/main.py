@@ -73,8 +73,12 @@ async def main():
 
 
 async def exec(func: str, arg: str, ws) -> str:
-    await ws.send(json.dumps({"Func": func, "Args": arg}))
-    response = await ws.recv()
+    response = ""
+    try:
+        await ws.send(json.dumps({"Func": func, "Args": arg}))
+        response = await ws.recv()
+    except Exception as err:
+        response = str(err)
     return response
 
 
