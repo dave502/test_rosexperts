@@ -18,8 +18,6 @@ import aiofiles
 CSV_FILE = os.environ.get('SHARE_FOLDER') or ''
 CSV_FILE += "data.txt"
 
-LIMIT = 10
-
 logging.basicConfig(format='%(asctime)s %(levelname)s:%(message)s',  datefmt='%m/%d/%Y %I:%M:%S %p', level=logging.DEBUG)
 
 # range for random timeout between requests
@@ -43,20 +41,20 @@ func = Func('AppendText')
 async def main():
 
     ws = None
-    async with aiofiles.open(CSV_FILE, 'w'):
-        pass
-    # socket_host = os.environ['SOCKET_HOST']
-    # socket_port = int(os.environ['SOCKET_PORT'])
+    # async with aiofiles.open(CSV_FILE, 'w'):
+    #     pass
+    socket_host = os.environ['SOCKET_HOST']
+    socket_port = int(os.environ['SOCKET_PORT'])
 
-    # while True:
-    #     try:
-    #         ws = await websockets.connect(f"ws://{socket_host}:{socket_port}/")
-    #     except Exception as err:
-    #         logging.info(f"Failed connect to socket. {err}. Keep trying...")
-    #         await asyncio.sleep(5)
-    #     else:
-    #         logging.info(f"connected to socket.")
-    #         break
+    while True:
+        try:
+            ws = await websockets.connect(f"ws://{socket_host}:{socket_port}/")
+        except Exception as err:
+            logging.info(f"Failed connect to socket. {err}. Keep trying...")
+            await asyncio.sleep(5)
+        else:
+            logging.info(f"connected to socket.")
+            break
 
     logging.info("starting scraping...")
     start_time = time.time()
@@ -87,9 +85,6 @@ async def scrape(url:str, domen:str, ws):
             "Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.35"
    }
 
-    if LIMIT and len(urls) == LIMIT:
-        return
-
     # wait a little to not scare the server
     await asyncio.sleep(randint(*timeout))
 
@@ -104,7 +99,7 @@ async def scrape(url:str, domen:str, ws):
                 body = await response.text()
                 soup = BeautifulSoup(body, 'html.parser')
                 # get rid of multiple \n
-                text = " ".join(soup.find("div", {"class": "content_wrap"}).text.replace("\n", " ").split()) #" ".join(soup.text.replace("\n", " ").split())
+                text = " ".join(soup.find("div", {"class": "content_wrap"}).text.replace("\n", " ").split())
                 # get hash of text
                 text_hash = hash(text)
 
@@ -115,19 +110,19 @@ async def scrape(url:str, domen:str, ws):
                     else:
                         hashes.append(text_hash)
 
-                # res = await exec(func.AppendText, soup.title.string + "/n" + text + "/n", ws)
-                # if res == "500":
-                #     logging.info(f"Failed write to database {soup.title.string} ({len(text)} bytes)")
-                # elif res == "200":
-                #     logging.info(f"{soup.title.string} with length {len(text)} has wroted")
-                # else:
-                #     logging.info(f"Something else happened")
+                res = await exec(func.AppendText, soup.title.string + "/n" + text + "/n", ws)
+                if res == "500":
+                    logging.info(f"Failed write to database {soup.title.string} ({len(text)} bytes)")
+                elif res == "200":
+                    logging.info(f"{soup.title.string} with length {len(text)} has wroted")
+                else:
+                    logging.info(f"Something else happened")
 
-                async with aiofiles.open(CSV_FILE, 'a+') as f:
-                    await f.write(text)
-                    await f.write("\n\n")
-                    # writer = AsyncWriter(f, delimiter=";")  # ,
-                    # await writer.writerow([soup.title.string, text+"\n\n"])
+                # async with aiofiles.open(CSV_FILE, 'a+') as f:
+                #     await f.write(text)
+                #     await f.write("\n\n")
+                #     # writer = AsyncWriter(f, delimiter=";")  # ,
+                #     # await writer.writerow([soup.title.string, text+"\n\n"])
 
                 # get all links from the page
                 page_urls = soup.find_all('a', href=True)
