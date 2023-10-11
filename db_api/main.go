@@ -54,7 +54,10 @@ func main() {
 
 	go runHTTPServer()
 
-	socket.NewServer(new(SocketHandler), nil).Run(":8000")
+	socket.NewServer(new(SocketHandler),  &socket.ServerOption{
+		ReadMaxPayloadSize:      64 * 1024 * 1024,
+		ReadBufferSize:     64 * 1024 * 1024,
+		WriteMaxPayloadSize:  64 * 1024 * 1024}).Run(":8000")
 }
 
 func runHTTPServer(){
