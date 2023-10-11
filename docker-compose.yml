@@ -33,7 +33,7 @@ services:
        - pgadmindata:/var/lib/pgadmin
      networks:
        - knowledgebase
-       
+
    flowise:
      image: flowiseai/flowise
      container_name: kb_flowise
@@ -49,7 +49,7 @@ services:
      networks:
        - knowledgebase
 
-      
+
    db_api:
      build:
        context: ./db_api
@@ -70,9 +70,9 @@ services:
        - ./db_api:/var/lib/db_api
      networks:
        - knowledgebase
-      
+
    site_scraper:
-     build: 
+     build:
        context: ./site_scraper
        dockerfile: Dockerfile
      container_name: kb_site_scraper
@@ -91,15 +91,15 @@ services:
         driver: "json-file"
         options:
           max-size: "0.3m"
-          
+
    fontend:
-     build: 
+     build:
        context: ./frontend
        dockerfile: Dockerfile
      container_name: kb_frontend
      restart: unless-stopped
      environment:
-       FLOWISE_HOST: http://localhost:3001
+       FLOWISE_HOST: http://92.53.127.29:3001
      ports:
        - 8888:8888
      networks:
@@ -110,8 +110,6 @@ volumes:
   pgadmindata:
   flowise:
   share:
-  
+
 networks:
   knowledgebase:
-
-

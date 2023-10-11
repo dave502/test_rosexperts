@@ -33,12 +33,12 @@ func sendIndex(w http.ResponseWriter, r *http.Request){
 		  </head>
 		  <body>
 		    <main>
-			<h2>Knowledge base Rosexperts</h2>  
+			<h2>Knowledge base Rosexperts</h2>
 		    </main>
 		  <script type="module">
 		      import Chatbot from "https://cdn.jsdelivr.net/npm/flowise-embed/dist/web.js"
 		      Chatbot.init({
-			  chatflowid: "09235cba-71c9-4d92-9228-41c561b297ef",
+			  chatflowid: "1ba6233f-348e-4497-8e12-4aef4f65bb40",
 			  apiHost: "%s",
 		      })
 		  </script>
