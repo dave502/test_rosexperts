@@ -1,0 +1,118 @@
+version: '3.8'
+
+services:
+
+   db:
+     image: postgres:latest
+     container_name: kb_postgres
+     hostname: database
+     restart: unless-stopped
+     ports:
+       - 54320:5432
+     environment:
+       POSTGRES_DB: $DB_NAME
+       POSTGRES_USER: $DB_USER
+       POSTGRES_PASSWORD: $DB_PASSWORD
+     volumes:
+       - pgdata:/var/lib/postgresql/data
+     networks:
+       - knowledgebase
+
+   pgadmin:
+     image: dpage/pgadmin4:latest
+     container_name: kb_pgadmin
+     depends_on:
+       - db
+     restart: unless-stopped
+     ports:
+       - 5050:80
+     environment:
+       PGADMIN_DEFAULT_EMAIL: $PGADMIN_DEFAULT_EMAIL
+       PGADMIN_DEFAULT_PASSWORD: $PGADMIN_DEFAULT_PASSWORD
+     volumes:
+       - pgadmindata:/var/lib/pgadmin
+     networks:
+       - knowledgebase
+       
+   flowise:
+     image: flowiseai/flowise
+     container_name: kb_flowise
+     restart: unless-stopped
+     environment:
+       PORT: 3000
+     ports:
+       - 3001:3000
+     volumes:
+       - flowise:/root/.flowise
+       - share:$SHARE_FOLDER
+     command: /bin/sh -c "sleep 3; flowise start"
+     networks:
+       - knowledgebase
+
+      
+   db_api:
+     build:
+       context: ./db_api
+       dockerfile: Dockerfile
+     container_name: kb_db_api
+     environment:
+       DB_USER: $DB_USER
+       DB_PASSWORD: $DB_PASSWORD
+       DB_NAME: $DB_NAME
+       DB_HOST: database
+       DB_PORT: 5432
+     depends_on:
+       - db
+     ports:
+       - 8000:8000
+       - 3333:3333
+     volumes:
+       - ./db_api:/var/lib/db_api
+     networks:
+       - knowledgebase
+      
+   site_scraper:
+     build: 
+       context: ./site_scraper
+       dockerfile: Dockerfile
+     container_name: kb_site_scraper
+     depends_on:
+       - db
+     environment:
+       SOCKET_HOST: db_api
+       SOCKET_PORT: 8000
+       SHARE_FOLDER: ${SHARE_FOLDER}
+     volumes:
+       - ./site_scraper:/var/lib/site_scraper
+       - share:${SHARE_FOLDER}
+     networks:
+       - knowledgebase
+     logging:
+        driver: "json-file"
+        options:
+          max-size: "0.3m"
+          
+   fontend:
+     build: 
+       context: ./frontend
+       dockerfile: Dockerfile
+     container_name: kb_frontend
+     restart: unless-stopped
+     environment:
+       FLOWISE_HOST: http://localhost:3001
+     ports:
+       - 8888:8888
+     networks:
+       - knowledgebase
+
+volumes:
+  pgdata:
+  pgadmindata:
+  flowise:
+  share:
+  chroma_persistent_folder:
+  
+networks:
+  knowledgebase:
+
+
