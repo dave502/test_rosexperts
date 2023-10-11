@@ -17,6 +17,4 @@ COPY --from=build-stage /goapp /goapp
 
 EXPOSE 8000
 
-USER nonroot:nonroot
-
 CMD ["/goapp"]
